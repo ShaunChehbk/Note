@@ -34,7 +34,8 @@ class Analyzer {
             //Error
         } else {
             //atInline
-            this.process = this.atInline
+            this.process = this.atInline;
+            this.process(c);
         }
     }
 
