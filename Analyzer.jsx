@@ -1,3 +1,5 @@
+import 'katex/dist/katex.min.css';
+import { InlineMath, BlockMath } from 'react-katex';
 
 class Analyzer {
     constructor(string) {
@@ -12,10 +14,12 @@ class Analyzer {
             //if next == $ then 'block mode'
             console.log('Normal -> Inline');
             this.process = this.atMath;
-            this.result.push(this.current);
+            if (this.current !== "") 
+                this.result.push(this.current);
             this.current = "";
         } else if (c == '\0') {
-            this.result.push(this.current);
+            if (this.current !== "") 
+                this.result.push(this.current);
         } else {
             this.current += c;
         }
@@ -24,7 +28,7 @@ class Analyzer {
     atMath(c) {
         //相邻的$$视为block标识符, $_$为空inline
         if (c == '$') {
-            console.log('Normal -> Block')
+            // console.log('Normal -> Block')
             this.process = this.atBlock
         } else if (c == '\0') {
             //Error
@@ -37,7 +41,8 @@ class Analyzer {
     outBlock(c) {
         if (c == '$') {
             this.process = this.atNormal;
-            this.result.push(this.current);
+            if (this.current !== "") 
+                this.result.push(<BlockMath math={this.current} />);
             this.current = "";
         } else {
             //Error
@@ -56,7 +61,8 @@ class Analyzer {
         if (c == '$') {
             console.log('Inline -> Normal');
             this.process = this.atNormal;
-            this.result.push(this.current);
+            if (this.current !== "") 
+                this.result.push(<InlineMath math={this.current} />);
             this.current = "";
         } else if (c == '\0') {
             console.log("Error");
@@ -65,12 +71,18 @@ class Analyzer {
         }
     
     }
+    renderOn(string) {
+        string = string + '\0';
+        this.result = [];
+        for (var i = 0; i < string.length; i++) {
+            a.process(string.charAt(i));
+        }
+        return this.result;
+    }
 }
 
-string = "This is normal $ This is inline math $, and here we go normal again$$$Block$$\0"
+var string = "This is normal $ This is inline math $, and here we go normal again$$Block$$\0"
 
-let a = new Analyzer("This is normal $ This is inline math $, and here we go normal again$$$Block$$");
-for (var i = 0; i < string.length; i++) {
-    a.process(string.charAt(i));
-}
-console.log(a.result);
+let b = new Analyzer("This is normal $ This is inline math $, and here we go normal again$$$Block$$");
+
+export var a = new Analyzer();
