@@ -21,132 +21,82 @@ export default class Note extends React.Component {
         }
         this.a = new Analyzer();
         //加入以下绑定后，[且带负号的项]写出....且带负号的项的问题消失
-        this.atNormal = this.atNormal.bind(this);
-        this.atMath = this.atMath.bind(this);
-        this.outBlock = this.outBlock.bind(this);
-        this.atBlock = this.atBlock.bind(this);
-        this.atInline = this.atInline.bind(this);
-        this.renderOn = this.renderOn.bind(this);
-        this.process = this.atNormal
     }
     render() {
         return (
             <div id={this.state.note.id}>
                 {/* 不要用a.renderOn() */}
                 {console.log(this.state.note.id, "render()")}
-                {this.a.renderOn(this.state.note.content)}
+                {/* {this.a.renderOn(this.state.note.content)} */}
+                {process(this.state.note.content)}
             </div>
         )
     }
-    atNormal(c) {
-        if (c == '$') {
-            this.process = this.atMath;
-            if (this.current !== "") {
-                this.setState(prev => ({
-                    note: prev.note,
-                    current: prev.current,
-                    result: prev.result.concat(<MarkText content={this.current} />)
-                }))
-                this.setState(prev => ({
-                    note: prev.note,
-                    current: "",
-                    result: prev.result
-                }))
-            }
-        } else if (c == '\0') {
-            if (this.current !== "") {
-                this.setState(prev => ({
-                    note: prev.note,
-                    current: prev.current,
-                    result: prev.result.concat(<MarkText content={this.current} />)
-                }))
-                this.setState(prev => ({
-                    note: prev.note,
-                    current: "",
-                    result: prev.result
-                }))
-            }
+}
+
+export const process = (string) => {
+    let result = []
+    let current = ""
+    function atNormal(c) {
+        if (c === '$') {
+            state = atMath;
+            if (current !== "") 
+            result.push(<MarkText content={current} />);
+            current = "";
+        } else if (c === '\0') {
+            if (current !== "") 
+            result.push(<MarkText content={current} />);
         } else {
-            this.setState(prev => ({
-                note: prev.note,
-                current: prev.current + c,
-                result: prev.result
-            }))
+            current += c;
         }
     }
 
-    atMath(c) {
+    function atMath(c) {
         //相邻的$$视为block标识符, $_$为空inline
-        if (c == '$') {
-            this.process = this.atBlock
-        } else if (c == '\0') {
+        if (c === '$') {
+            state = atBlock
+        } else if (c === '\0') {
         } else {
-            this.process = this.atInline;
-            this.process(c);
+            state = atInline;
+            state(c);
         }
     }
 
-    outBlock(c) {
-        if (c == '$') {
-            this.process = this.atNormal;
-            if (this.current !== "") {
-                this.setState(prev => ({
-                    note: prev.note,
-                    current: prev.current,
-                    result: prev.result.concat(<BlockMath math={this.current} />)
-                }))
-                this.setState(prev => ({
-                    note: prev.note,
-                    current: "",
-                    result: prev.result
-                }))
-            }
+    function outBlock(c) {
+        if (c === '$') {
+            state = atNormal;
+            if (current !== "") 
+                result.push(<BlockMath math={current} />);
+            current = "";
         } else {
         }
     }
 
-    atBlock(c) {
-        if (c == '$') {
-            this.process = this.outBlock;
+    function atBlock(c) {
+        if (c === '$') {
+            state = outBlock;
         } else {
-            this.setState(prev => ({
-                note: prev.note,
-                current: prev.current + c,
-                result: prev.result
-            }))
+            current += c;
         }
     }
     
-    atInline(c) {
-        if (c == '$') {
-            this.process = this.atNormal;
-            if (this.current !== "") {
-                this.setState(prev => ({
-                    note: prev.note,
-                    current: prev.current,
-                    result: prev.result.concat(<InlineMath math={this.current} />)
-                }));
-                this.setState(prev => ({
-                    note: prev.note,
-                    current: "",
-                    result: prev.result
-                }))
-            }
-        } else if (c == '\0') {
+    function atInline(c) {
+        if (c === '$') {
+            state = atNormal;
+            if (current !== "") 
+                result.push(<InlineMath math={current} />);
+            current = "";
+        } else if (c === '\0') {
         } else {
-            this.setState(prev => ({
-                note: prev.note,
-                current: prev.current + c,
-                result: prev.result
-            }))
+            current += c;
         }
     
     }
-    renderOn() {
-        string = string + '\0';
-        for (var i = 0; i < string.length; i++) {
-            this.process(string.charAt(i));
-        }
-        return this.result;
+    let state = atNormal;
+    console.log(string);
+    string = string + '\0';
+    for (var i = 0; i < string.length; i++) {
+        state(string.charAt(i), current, result);
     }
+    return result;
 }

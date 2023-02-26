@@ -1,6 +1,6 @@
 import React from "react";
 import { addMathNote } from "./API";
-import Note from "./Note";
+import { process } from "./Note";
 import { a } from "./Analyzer";
 
 
@@ -68,7 +68,7 @@ class Preview extends React.Component {
         console.log(this.state.content);
         return (
             <div>
-                {a.renderOn(this.props.content)}
+                {process(this.props.content)}
             </div>
         )
     }
