@@ -1,25 +1,29 @@
 import 'katex/dist/katex.min.css';
 import { InlineMath, BlockMath } from 'react-katex';
+import MarkText from './MarkText';
 
-class Analyzer {
+export default class Analyzer {
     constructor(string) {
         this.string = string + '\0';
-        console.log(this.string);
+        this.atNormal = this.atNormal.bind(this);
+        this.atMath = this.atMath.bind(this);
+        this.outBlock = this.outBlock.bind(this);
+        this.atBlock = this.atBlock.bind(this);
+        this.atInline = this.atInline.bind(this);
+        this.renderOn = this.renderOn.bind(this);
         this.process = this.atNormal
         this.result = []
         this.current = ""
     }
     atNormal(c) {
         if (c == '$') {
-            //if next == $ then 'block mode'
-            console.log('Normal -> Inline');
             this.process = this.atMath;
             if (this.current !== "") 
-                this.result.push(this.current);
+                this.result.push(<MarkText content={this.current} />);
             this.current = "";
         } else if (c == '\0') {
             if (this.current !== "") 
-                this.result.push(this.current);
+                this.result.push(<MarkText content={this.current} />);
         } else {
             this.current += c;
         }
@@ -28,12 +32,9 @@ class Analyzer {
     atMath(c) {
         //相邻的$$视为block标识符, $_$为空inline
         if (c == '$') {
-            // console.log('Normal -> Block')
             this.process = this.atBlock
         } else if (c == '\0') {
-            //Error
         } else {
-            //atInline
             this.process = this.atInline;
             this.process(c);
         }
@@ -46,7 +47,6 @@ class Analyzer {
                 this.result.push(<BlockMath math={this.current} />);
             this.current = "";
         } else {
-            //Error
         }
     }
 
@@ -60,13 +60,11 @@ class Analyzer {
     
     atInline(c) {
         if (c == '$') {
-            console.log('Inline -> Normal');
             this.process = this.atNormal;
             if (this.current !== "") 
                 this.result.push(<InlineMath math={this.current} />);
             this.current = "";
         } else if (c == '\0') {
-            console.log("Error");
         } else {
             this.current += c;
         }
@@ -74,9 +72,10 @@ class Analyzer {
     }
     renderOn(string) {
         string = string + '\0';
-        this.result = [];
+        console.log('string', string)
+        this.result=[];
         for (var i = 0; i < string.length; i++) {
-            a.process(string.charAt(i));
+            this.process(string.charAt(i));
         }
         return this.result;
     }
