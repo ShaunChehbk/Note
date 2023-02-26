@@ -48,7 +48,9 @@ export const process = (string) => {
             result.push(<MarkText content={current} />);
             current = "";
         } else if (c === '\n') {
-            result.push(<br />);
+            result.push(<MarkText content={current} />);
+            current = "";
+            result.push(<br />)
         } else {
             current += c;
         }
