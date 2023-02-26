@@ -46,6 +46,9 @@ export const process = (string) => {
         } else if (c === '\0') {
             if (current !== "") 
             result.push(<MarkText content={current} />);
+            current = "";
+        } else if (c === '\n') {
+            result.push(<br />);
         } else {
             current += c;
         }
